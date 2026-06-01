@@ -5,6 +5,7 @@ __pycache__/
 
 # Environment
 .env
+backend/.env
 
 # React
 frontend/node_modules/
@@ -22,3 +23,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+#sqlite
+backend/db.sqlite3
