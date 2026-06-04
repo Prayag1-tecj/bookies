@@ -38,6 +38,11 @@ urlpatterns = [
         "api/books/",
         include("apps.books.urls")
     ),
+
+    path(
+        "api/chat/",
+        include("apps.chat.urls")
+    ),
     
 ]
 
