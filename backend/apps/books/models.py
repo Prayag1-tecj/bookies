@@ -92,3 +92,27 @@ class Document(models.Model):
 
     def __str__(self):
         return f"Document - {self.book.title}"
+
+class Chunk(models.Model):
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="chunks"
+    )
+
+    chunk_index = models.IntegerField()
+
+    content = models.TextField()
+
+    word_count = models.IntegerField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"Chunk {self.chunk_index} - "
+            f"{self.document.book.title}"
+        )

@@ -9,6 +9,7 @@ from .extractors import (
     extract_epub_text,
 )
 
+from .chunk_processor import create_chunks
 
 def process_book(book):
 
@@ -18,6 +19,7 @@ def process_book(book):
 
     document.extraction_status = "PROCESSING"
     document.save()
+    
 
     try:
 
@@ -51,6 +53,7 @@ def process_book(book):
         document.processed_at = timezone.now()
 
         document.save()
+        create_chunks(document)
 
         book.status = "READY"
         book.save()
