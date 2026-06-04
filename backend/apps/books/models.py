@@ -116,3 +116,22 @@ class Chunk(models.Model):
             f"Chunk {self.chunk_index} - "
             f"{self.document.book.title}"
         )
+
+class ChunkEmbedding(models.Model):
+
+    chunk = models.OneToOneField(
+        Chunk,
+        on_delete=models.CASCADE,
+        related_name="embedding"
+    )
+
+    embedding = models.JSONField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"Embedding {self.chunk.id}"
+        )
