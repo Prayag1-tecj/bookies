@@ -11,6 +11,8 @@ from .serializers import (
     BookListSerializer,
 )
 
+from .services.document_processor import process_book
+
 MAX_BOOKS = 3
 MAX_FILE_SIZE_MB = 5
 
@@ -77,6 +79,8 @@ class BookUploadView(APIView):
             file_type=extension,
             file_size_mb=round(file_size_mb, 2),
         )
+
+        process_book(book)
 
         profile.books_uploaded += 1
         profile.storage_used_mb += file_size_mb

@@ -55,3 +55,40 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+class Document(models.Model):
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("PROCESSING", "Processing"),
+        ("COMPLETED", "Completed"),
+        ("FAILED", "Failed"),
+    ]
+
+    book = models.OneToOneField(
+        Book,
+        on_delete=models.CASCADE,
+        related_name="document"
+    )
+
+    raw_text = models.TextField(
+        blank=True
+    )
+
+    word_count = models.IntegerField(
+        default=0
+    )
+
+    extraction_status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    processed_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f"Document - {self.book.title}"
