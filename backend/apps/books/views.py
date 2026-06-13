@@ -34,6 +34,24 @@ class BookUploadView(APIView):
             )
 
         uploaded_file = request.FILES.get("file")
+        MAX_SIZE_MB = 5
+
+        file_size_mb = (
+            uploaded_file.size /
+            (1024 * 1024)
+        )
+
+        if file_size_mb > MAX_SIZE_MB:
+
+            return Response(
+                {
+                    "error":
+                    "File exceeds 5 MB limit"
+                },
+                status=400
+            )
+
+        
 
         if not uploaded_file:
             return Response(
