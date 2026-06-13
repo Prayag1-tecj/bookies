@@ -139,3 +139,55 @@ class CreateChatSessionView(APIView):
             "title": session.title,
             "book_id": book.id
         })
+
+class SessionListView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        sessions = (
+            ChatSession.objects
+            .filter(user=request.user)
+            .order_by("-created_at")
+        )
+
+        return Response(
+            [
+                {
+                    "id": session.id,
+                    "title": session.title,
+                    "book_id": session.book.id,
+                    "created_at": session.created_at
+                }
+                for session in sessions
+            ]
+        )
+
+class DeleteSessionView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def delete(
+        self,
+        request,
+        session_id
+    ):
+
+        session = ChatSession.objects.get(
+            id=session_id,
+            user=request.user
+        )
+
+        session.delete()
+
+        return Response(
+            {
+                "message":
+                "Session deleted successfully"
+            }
+        )

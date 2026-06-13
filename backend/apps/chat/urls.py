@@ -3,7 +3,9 @@ from django.urls import path
 from .views import (
     AskQuestionView,
     ChatHistoryView,
-    CreateChatSessionView
+    CreateChatSessionView,
+    SessionListView,
+    DeleteSessionView
 )
 
 urlpatterns = [
@@ -20,5 +22,15 @@ urlpatterns = [
     path(
         "sessions/create/",
         CreateChatSessionView.as_view()
+    ),
+
+    path(
+        "sessions/",
+        SessionListView.as_view()
+    ),
+
+    path(
+        "sessions/<int:session_id>/",
+        DeleteSessionView.as_view()
     ),
 ]
