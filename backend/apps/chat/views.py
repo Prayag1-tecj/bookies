@@ -45,6 +45,12 @@ class AskQuestionView(APIView):
             user=request.user
         )
 
+        if session.title == "New Chat":
+
+            session.title = question[:100]
+
+            session.save()
+
         ChatMessage.objects.create(
             session=session,
             role="USER",
@@ -122,7 +128,10 @@ class CreateChatSessionView(APIView):
     def post(self, request):
 
         book_id = request.data.get("book_id")
-        title = request.data.get("title")
+        title = request.data.get(
+    "title",
+    "New Chat"
+)
 
         book = Book.objects.get(
             id=book_id
