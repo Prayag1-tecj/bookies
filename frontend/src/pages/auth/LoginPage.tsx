@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Mail, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/routes/paths'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
 
 interface FormErrors {
@@ -17,7 +18,6 @@ function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [generalError, setGeneralError] = useState<string | null>(null)
 
@@ -82,26 +82,14 @@ function LoginPage() {
           autoComplete="email"
         />
 
-        <Input
+        <PasswordInput
           id="password"
-          type={showPassword ? 'text' : 'password'}
           label="Password"
           placeholder="••••••••"
-          icon={<Lock className="h-4 w-4" />}
           error={errors.password}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
-          rightElement={
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="text-gray-500 transition-colors hover:text-gray-300"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          }
         />
 
         <Button type="submit" fullWidth isLoading={isLoading}>
