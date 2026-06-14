@@ -1,20 +1,28 @@
-import { Outlet } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import Sidebar from '@/components/layout/Sidebar'
+import Topbar from '@/components/layout/Topbar'
 
 function DashboardLayout() {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const location = useLocation()
+
+  // Close the mobile drawer automatically whenever the route changes
+  useEffect(() => {
+    setIsMobileSidebarOpen(false)
+  }, [location.pathname])
+
   return (
     <div className="flex h-screen bg-surface text-gray-100">
-      {/* Sidebar placeholder — will become <Sidebar /> in a future phase */}
-      <aside className="hidden w-64 flex-shrink-0 border-r border-surface-border bg-surface-subtle md:block">
-        <div className="p-4 text-sm text-gray-400">Sidebar placeholder</div>
-      </aside>
+      <Sidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Topbar placeholder — will become <Topbar /> in a future phase */}
-        <header className="flex h-14 flex-shrink-0 items-center border-b border-surface-border px-6">
-          <div className="text-sm text-gray-400">Topbar placeholder</div>
-        </header>
+        <Topbar onMenuClick={() => setIsMobileSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto p-6 animate-fade-in">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>
