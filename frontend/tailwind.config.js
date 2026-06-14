@@ -38,10 +38,16 @@ export default {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' },
         },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-4px)' },
+          '75%': { transform: 'translateX(4px)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.2s ease-out',
         'slide-in': 'slide-in 0.25s ease-out',
+        shake: 'shake 0.3s ease-in-out',
       },
     },
   },
