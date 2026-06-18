@@ -19,31 +19,34 @@ Bookies is a full-stack AI application that enables users to upload books and in
 
 ## System Architecture
 
-![System Architecture](PASTE_ARCHITECTURE_IMAGE_LINK_HERE)
+![System Architecture](assets/screenshots/BackEnd_Architecture.png)
 
 ## Login Page
 
-![Login Page](PASTE_LOGIN_SCREENSHOT_LINK_HERE)
+![Login Page](assets/screenshots/Login_Page.png)
 
 ## Dashboard
 
-![Dashboard](PASTE_DASHBOARD_SCREENSHOT_LINK_HERE)
+![Dashboard](assets/screenshots/Dashboard.png)
 
 ## Books Library
 
-![Books Library](PASTE_BOOKS_SCREENSHOT_LINK_HERE)
+![Books Library](assets/screenshots/Books_Library.png)
 
 ## Upload Experience
 
-![Upload Experience](PASTE_UPLOAD_SCREENSHOT_LINK_HERE)
+![Upload Experience](assets/screenshots/Uploag_Book.png)
 
 ## AI Chat Interface
 
-![AI Chat Interface](PASTE_CHAT_SCREENSHOT_LINK_HERE)
+![AI Chat Interface](assets/screenshots/Chat_interface.png)
 
 ## Settings Page
 
-![Settings Page](PASTE_SETTINGS_SCREENSHOT_LINK_HERE)
+![Settings Page](assets/screenshots/Settings.png)
+
+## UI Demonstration
+[Click here](https://drive.google.com/file/d/1tLBJbTZ0WuEbAqUGgzo1zmDUls690N-d/view?usp=sharing) for video.
 
 ---
 
