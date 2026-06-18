@@ -43,11 +43,16 @@ export default {
           '25%': { transform: 'translateX(-4px)' },
           '75%': { transform: 'translateX(4px)' },
         },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.96)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.2s ease-out',
         'slide-in': 'slide-in 0.25s ease-out',
         shake: 'shake 0.3s ease-in-out',
+        'scale-in': 'scale-in 0.15s ease-out',
       },
     },
   },

@@ -1,3 +1,5 @@
+export type BookStatus = 'ready' | 'processing' | 'failed'
+
 export interface Book {
   id: string
   title: string
@@ -5,4 +7,7 @@ export interface Book {
   coverColorClass: string
   pageCount: number
   uploadedAt: string
+  fileType: 'PDF' | 'EPUB'
+  status: BookStatus
+  questionCount: number
 }

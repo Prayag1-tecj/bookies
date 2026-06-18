@@ -11,6 +11,9 @@ const books: Book[] = [
     coverColorClass: 'bg-violet-500/15 text-violet-400',
     pageCount: 320,
     uploadedAt: new Date(Date.now() - 2 * HOUR).toISOString(),
+    fileType: 'PDF',
+    status: 'ready',
+    questionCount: 34,
   },
   {
     id: 'book-2',
@@ -19,6 +22,9 @@ const books: Book[] = [
     coverColorClass: 'bg-emerald-500/15 text-emerald-400',
     pageCount: 296,
     uploadedAt: new Date(Date.now() - 1 * DAY).toISOString(),
+    fileType: 'EPUB',
+    status: 'ready',
+    questionCount: 19,
   },
   {
     id: 'book-3',
@@ -27,6 +33,9 @@ const books: Book[] = [
     coverColorClass: 'bg-amber-500/15 text-amber-400',
     pageCount: 499,
     uploadedAt: new Date(Date.now() - 3 * DAY).toISOString(),
+    fileType: 'PDF',
+    status: 'ready',
+    questionCount: 52,
   },
   {
     id: 'book-4',
@@ -35,6 +44,20 @@ const books: Book[] = [
     coverColorClass: 'bg-sky-500/15 text-sky-400',
     pageCount: 352,
     uploadedAt: new Date(Date.now() - 6 * DAY).toISOString(),
+    fileType: 'PDF',
+    status: 'processing',
+    questionCount: 0,
+  },
+  {
+    id: 'book-5',
+    title: 'Sapiens',
+    author: 'Yuval Noah Harari',
+    coverColorClass: 'bg-rose-500/15 text-rose-400',
+    pageCount: 443,
+    uploadedAt: new Date(Date.now() - 9 * DAY).toISOString(),
+    fileType: 'EPUB',
+    status: 'failed',
+    questionCount: 0,
   },
 ]
 
@@ -43,7 +66,6 @@ export function getAllBooks(): Book[] {
   return books
 }
 
-// Will eventually be a backend query param (?sort=recent&limit=4)
 export function getRecentBooks(limit = 4): Book[] {
   return [...books]
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
