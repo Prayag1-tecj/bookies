@@ -14,6 +14,7 @@ const MOCK_USER: User = {
   id: 'user-1',
   name: 'Demo User',
   email: 'demo@bookies.app',
+  joinedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 47).toISOString(),
 }
 
 const MOCK_NETWORK_DELAY = 600
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: 'user-1',
         name: credentials.name,
         email: credentials.email,
+        joinedAt: new Date().toISOString(),
       },
       isAuthenticated: true,
       isLoading: false,

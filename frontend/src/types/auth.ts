@@ -2,6 +2,7 @@ export interface User {
   id: string
   name: string
   email: string
+  joinedAt: string
 }
 
 export interface AuthState {
