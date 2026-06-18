@@ -1,32 +1,69 @@
-# 📚 Bookies — AI-Powered Book Mentor (Backend)
+# 📚 Bookies — AI-Powered Book Mentor
 
-> Turn books into conversations.
+> Turn books into conversations with AI-powered, context-aware question answering.
 
-Bookies is an AI-powered Book Mentor platform that enables users to upload books and ask natural language questions about their content. The backend is built using Django REST Framework and follows a Retrieval-Augmented Generation (RAG) architecture to deliver context-aware answers grounded in the uploaded books.
-
-**Backend Status:** ✅ Complete
-**Frontend Status:** 🚧 In Development
-**Full Product Launch:** Coming Soon
+Bookies is a full-stack AI application that enables users to upload books and interact with them through natural language conversations. The platform uses Retrieval-Augmented Generation (RAG), semantic search, and Google Gemini to generate grounded responses based on uploaded book content.
 
 ---
 
-# 🚀 Features
+## 🚀 Live Status
+
+* ✅ Backend Complete
+* ✅ Frontend UI Complete
+* 🚧 Backend Integration In Progress
+* 🚀 Full Product Launch Coming Soon
+
+---
+
+# 📸 Application Preview
+
+## System Architecture
+
+![System Architecture](PASTE_ARCHITECTURE_IMAGE_LINK_HERE)
+
+## Login Page
+
+![Login Page](PASTE_LOGIN_SCREENSHOT_LINK_HERE)
+
+## Dashboard
+
+![Dashboard](PASTE_DASHBOARD_SCREENSHOT_LINK_HERE)
+
+## Books Library
+
+![Books Library](PASTE_BOOKS_SCREENSHOT_LINK_HERE)
+
+## Upload Experience
+
+![Upload Experience](PASTE_UPLOAD_SCREENSHOT_LINK_HERE)
+
+## AI Chat Interface
+
+![AI Chat Interface](PASTE_CHAT_SCREENSHOT_LINK_HERE)
+
+## Settings Page
+
+![Settings Page](PASTE_SETTINGS_SCREENSHOT_LINK_HERE)
+
+---
+
+# ✨ Features
 
 ## Authentication & User Management
 
 * JWT Authentication
-* User Registration
-* User Login
-* Protected APIs
-* User-based Data Isolation
+* User Registration & Login
+* Protected Routes
+* User Data Isolation
+* Session Management
 
 ## Book Management
 
 * Upload Books
-* List Uploaded Books
+* View Uploaded Books
 * Delete Books
-* File Validation
-* File Upload Limits
+* Upload Validation
+* Usage Limits
 
 ## Supported Formats
 
@@ -35,349 +72,177 @@ Bookies is an AI-powered Book Mentor platform that enables users to upload books
 * DOCX
 * TXT
 
-## Document Processing Pipeline
-
-* Text Extraction
-* Intelligent Chunking
-* Embedding Generation
-* Embedding Storage
-* Semantic Retrieval
-
-## AI-Powered Question Answering
+## AI-Powered Conversations
 
 * Retrieval-Augmented Generation (RAG)
 * Semantic Search
 * Context-Aware Responses
+* Chat Sessions
+* Chat History
 * Gemini 2.5 Flash Integration
 
-## Chat System
+## Usage Tracking
 
-* Chat Sessions
-* Session Management
-* Chat History Tracking
-* Conversation Persistence
-
-## Usage Management
-
-* Daily Question Limits
 * Upload Limits
-* Usage Tracking
+* Daily Question Limits
+* Active Session Tracking
+* Usage Statistics
 
 ---
 
 # 🏗️ System Architecture
 
-## High-Level Flow
-
 ```text
-User
- │
- ▼
-JWT Authentication
- │
- ▼
-Book Upload API
- │
- ▼
-Document Processing Pipeline
- │
- ├── Text Extraction
- ├── Chunking
- ├── Embedding Generation
- └── Embedding Storage
- │
- ▼
-PostgreSQL Database
- │
- ▼
-User Question
- │
- ▼
-Question Embedding
- │
- ▼
-Semantic Retrieval
- │
- ▼
-Top Relevant Chunks
- │
- ▼
-Gemini 2.5 Flash
- │
- ▼
-Context-Aware Answer
-```
-
----
-
-# ⚙️ Backend Architecture
-
-```text
-apps/
-│
-├── accounts/
-│   ├── authentication
-│   ├── user management
-│   └── usage tracking
-│
-├── books/
-│   ├── upload management
-│   ├── document processing
-│   ├── chunk generation
-│   ├── embedding generation
-│   └── retrieval services
-│
-├── chat/
-│   ├── chat sessions
-│   ├── chat messages
-│   ├── history tracking
-│   └── question answering
-│
-└── core/
-    ├── utilities
-    ├── permissions
-    └── shared services
+Frontend (React + TypeScript)
+            │
+            ▼
+      Axios API Layer
+            │
+            ▼
+ Django REST Framework
+            │
+ ┌──────────┼──────────┐
+ ▼          ▼          ▼
+Auth      Books      Chat
+            │
+            ▼
+Document Processing
+            │
+ ├─ Text Extraction
+ ├─ Chunking
+ ├─ Embedding Generation
+ └─ Semantic Retrieval
+            │
+            ▼
+     PostgreSQL (Neon)
+            │
+            ▼
+    Google Gemini 2.5 Flash
+            │
+            ▼
+     Context-Aware Answers
 ```
 
 ---
 
 # 🧠 RAG Pipeline
 
-## Step 1 — Upload
-
-Users upload books through the Book Upload API.
-
-Supported formats:
-
 ```text
-PDF
-EPUB
-DOCX
-TXT
-```
-
----
-
-## Step 2 — Text Extraction
-
-The system extracts raw text from uploaded documents.
-
-```text
-Book
- ↓
-Raw Text
-```
-
----
-
-## Step 3 — Chunking
-
-Large documents are split into smaller chunks.
-
-```text
-Book Text
- ↓
-Chunk 1
-Chunk 2
-Chunk 3
-...
-Chunk N
-```
-
-This improves retrieval quality and keeps AI context efficient.
-
----
-
-## Step 4 — Embedding Generation
-
-Each chunk is converted into a vector representation using:
-
-```text
-Sentence Transformers
-all-MiniLM-L6-v2
-```
-
-Output:
-
-```text
-Chunk
- ↓
-384-Dimensional Vector
-```
-
----
-
-## Step 5 — Storage
-
-The following data is persisted:
-
-```text
-Books
-Chunks
-Embeddings
-Chat Sessions
-Messages
-Usage Data
-Users
-```
-
-using PostgreSQL.
-
----
-
-## Step 6 — Question Processing
-
-When a user asks a question:
-
-```text
-Question
- ↓
+Book Upload
+     │
+     ▼
+Text Extraction
+     │
+     ▼
+Document Chunking
+     │
+     ▼
+Embedding Generation
+(all-MiniLM-L6-v2)
+     │
+     ▼
+Embedding Storage
+     │
+     ▼
+User Question
+     │
+     ▼
 Question Embedding
-```
-
-The same embedding model converts the question into a vector.
-
----
-
-## Step 7 — Semantic Retrieval
-
-Using cosine similarity:
-
-```text
-Question Vector
- ↓
-Similarity Search
- ↓
-Top Relevant Chunks
-```
-
-The system retrieves the most relevant content from the uploaded book.
-
----
-
-## Step 8 — Gemini Response Generation
-
-Retrieved chunks are sent as context to:
-
-```text
-Google Gemini 2.5 Flash
-```
-
-Prompt Structure:
-
-```text
-Question
-+
-Retrieved Context
-=
-Grounded Response
-```
-
-This reduces hallucinations and ensures answers remain book-specific.
-
----
-
-# 🗄️ Database Design
-
-## Core Models
-
-### User
-
-```text
-Authentication
-Profile
-Usage Tracking
-```
-
-### Book
-
-```text
-Title
-File
-Owner
-Upload Date
-```
-
-### Chunk
-
-```text
-Book Reference
-Chunk Content
-Chunk Index
-```
-
-### ChunkEmbedding
-
-```text
-Chunk Reference
-Embedding Vector
-```
-
-### ChatSession
-
-```text
-User
-Book
-Title
-Created At
-```
-
-### ChatMessage
-
-```text
-Session
-Role
-Content
-Timestamp
+     │
+     ▼
+Semantic Retrieval
+     │
+     ▼
+Relevant Chunks
+     │
+     ▼
+Gemini 2.5 Flash
+     │
+     ▼
+Grounded AI Response
 ```
 
 ---
 
-# 🔐 Security Features
+# 🗄️ Core Data Model
 
-* JWT Authentication
-* Protected Endpoints
-* User-Based Access Control
-* Resource Ownership Validation
-* Upload Restrictions
-* Usage Limit Enforcement
+## User
+
+* Authentication
+* Profile
+* Usage Tracking
+
+## Book
+
+* Title
+* File
+* Owner
+* Upload Timestamp
+
+## Chunk
+
+* Book Reference
+* Chunk Content
+* Chunk Index
+
+## ChunkEmbedding
+
+* Chunk Reference
+* Vector Representation
+
+## ChatSession
+
+* User
+* Book
+* Session Title
+
+## ChatMessage
+
+* Session
+* Role
+* Content
+* Timestamp
 
 ---
 
 # 📡 API Modules
 
-## Authentication APIs
+## Authentication
 
-```text
+```http
 POST /api/auth/register/
 POST /api/auth/login/
 ```
 
----
+## Books
 
-## Book APIs
-
-```text
+```http
 POST   /api/books/upload/
 GET    /api/books/
 DELETE /api/books/{id}/
 ```
 
----
+## Chat
 
-## Chat APIs
-
-```text
-POST /api/chat/ask/
-GET  /api/chat/history/{session_id}/
-POST /api/chat/sessions/
-GET  /api/chat/sessions/
+```http
+POST   /api/chat/ask/
+GET    /api/chat/history/{session_id}/
+POST   /api/chat/sessions/
+GET    /api/chat/sessions/
 DELETE /api/chat/sessions/{id}/
 ```
 
 ---
 
 # 🛠️ Tech Stack
+
+## Frontend
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* React Router
 
 ## Backend
 
@@ -388,45 +253,53 @@ DELETE /api/chat/sessions/{id}/
 ## Database
 
 * PostgreSQL
-* Neon (Hosting)
+* Neon
 
-## AI & NLP
+## AI / NLP
 
 * Google Gemini 2.5 Flash
 * Sentence Transformers
 * all-MiniLM-L6-v2
+* Semantic Search
+* Retrieval-Augmented Generation (RAG)
 
 ## Authentication
 
 * JWT Authentication
 
-## APIs
+---
 
-* REST APIs
+# 🔐 Security
+
+* JWT Authentication
+* Protected Endpoints
+* User Ownership Validation
+* Upload Restrictions
+* Usage Limit Enforcement
 
 ---
 
-# 📈 Challenges Solved
+# 🎯 Key Engineering Challenges Solved
 
-### Semantic Search
+### Semantic Retrieval
 
-Moved beyond keyword matching by implementing embedding-based retrieval.
+Implemented embedding-based retrieval to move beyond keyword search and improve answer relevance.
 
-### Context Management
+### Multi-Format Document Processing
 
-Built retrieval pipelines to keep prompts relevant and efficient.
+Built a unified ingestion pipeline supporting PDF, EPUB, DOCX, and TXT files.
 
-### Multi-Format Parsing
+### Context-Aware AI Responses
 
-Created a unified document processing pipeline for multiple file formats.
+Grounded Gemini responses using retrieved book content to reduce hallucinations.
 
-### Scalable Architecture
+### Scalable Backend Design
 
-Separated authentication, book processing, retrieval, and chat systems into modular services.
+Separated authentication, document processing, retrieval, and chat systems into modular services.
 
 ---
 
-# 🎯 Learning Outcomes
+# 📚 Learning Outcomes
 
 Through Bookies, I gained hands-on experience with:
 
@@ -435,11 +308,11 @@ Through Bookies, I gained hands-on experience with:
 * Embedding Models
 * LLM Integration
 * Django REST Framework
+* PostgreSQL
 * JWT Authentication
-* PostgreSQL Database Design
-* API Development
-* Modular Backend Architecture
-* AI Application Development
+* React + TypeScript
+* REST API Development
+* Full-Stack AI Application Architecture
 
 ---
 
@@ -453,27 +326,25 @@ Through Bookies, I gained hands-on experience with:
 * Chunking Engine
 * Embedding Generation
 * Semantic Retrieval
-* Gemini Integration
 * Chat Sessions
 * Chat History
-* Usage Limits
+* Frontend UI
+* Gemini Integration
 
-### Coming Soon
+### Upcoming
 
-* React Frontend
-* Interactive Dashboard
-* Book Library UI
-* Chat Interface
-* SaaS Usage Analytics
-* Cloud Deployment
-* Full Product Launch
+* Frontend ↔ Backend Integration
+* Production Deployment
+* SaaS Analytics
+* Usage Dashboard Enhancements
+* Full Public Launch
 
 ---
 
-# 📬 Author
+# 👨‍💻 Author
 
-Built by Prayag Shrivastava
+**Prayag Shrivastava**
 
-Bookies is an AI-powered platform designed to help readers interact with books through intelligent, context-aware conversations powered by Retrieval-Augmented Generation (RAG).
+Bookies is an AI-powered Book Mentor platform that transforms books into interactive conversations through Retrieval-Augmented Generation (RAG), semantic search, and modern AI systems.
 
 ⭐ Full application launch coming soon.
