@@ -7,11 +7,13 @@ import SearchInput from '@/components/ui/SearchInput'
 import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import UploadModal from '@/components/upload/UploadModal'
 
 function BooksPage() {
   const [books] = useState<Book[]>(getAllBooks())
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true)
@@ -36,7 +38,7 @@ function BooksPage() {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <SearchInput placeholder="Search books..." />
-          <Button className="whitespace-nowrap">
+          <Button className="whitespace-nowrap" onClick={() => setIsUploadModalOpen(true)}>
             <Upload className="h-4 w-4" />
             Upload Book
           </Button>
@@ -73,6 +75,8 @@ function BooksPage() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setBookToDelete(null)}
       />
+
+      <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
     </div>
   )
 }
