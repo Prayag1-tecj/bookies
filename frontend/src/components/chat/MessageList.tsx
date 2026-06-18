@@ -1,43 +1,56 @@
 import { useEffect, useRef } from 'react'
-import { MessageCircle } from 'lucide-react'
 import type { Message } from '@/types/chat'
-import MessageBubble from './MessageBubble'
-import EmptyState from '@/components/ui/EmptyState'
+import { groupMessages } from '@/utils/groupMessages'
+import MessageGroup from './MessageGroup'
+import TypingIndicator from './TypingIndicator'
+import ChatEmptyState from './ChatEmptyState'
 
 interface MessageListProps {
   messages: Message[]
+  isTyping: boolean
+  bookTitle?: string
+  suggestions: string[]
+  onSuggestionClick: (text: string) => void
 }
 
-function MessageList({ messages }: MessageListProps) {
+function MessageList({
+  messages,
+  isTyping,
+  bookTitle,
+  suggestions,
+  onSuggestionClick,
+}: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to the latest message. This same ref/effect pattern will
-  // keep the view pinned to the bottom as streamed tokens arrive later.
+  // Auto-scroll on new messages and whenever the typing indicator
+  // appears/disappears — this same mechanism keeps the view pinned to
+  // the bottom as streamed tokens arrive later.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, isTyping])
 
-  if (messages.length === 0) {
+  if (messages.length === 0 && !isTyping) {
     return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <EmptyState
-          icon={MessageCircle}
-          title="No messages yet"
-          description="Ask a question about this book to get started."
-        />
-      </div>
+      <ChatEmptyState
+        bookTitle={bookTitle}
+        suggestions={suggestions}
+        onSuggestionClick={onSuggestionClick}
+      />
     )
   }
 
+  const groups = groupMessages(messages)
+
   return (
-    <div className="flex-1 space-y-4 overflow-y-auto p-4 md:p-6">
+    <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
       {/* NOTE: for very long histories, this is the spot to introduce
           virtualization (e.g. react-window) or paginated loading instead
           of rendering every message at once. Not needed for current mock
           conversation lengths. */}
-      {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+      {groups.map((group, index) => (
+        <MessageGroup key={`${group.role}-${index}-${group.messages[0].id}`} group={group} />
       ))}
+      {isTyping && <TypingIndicator />}
       <div ref={bottomRef} />
     </div>
   )

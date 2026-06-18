@@ -14,3 +14,10 @@ export function formatRelativeTime(isoDate: string): string {
 
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
+
+export function formatTime(isoDate: string): string {
+  return new Date(isoDate).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
