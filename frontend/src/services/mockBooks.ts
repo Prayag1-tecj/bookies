@@ -71,3 +71,8 @@ export function getRecentBooks(limit = 4): Book[] {
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
     .slice(0, limit)
 }
+
+// Will become: axios.get<Book>(`/books/${id}`)
+export function getBookById(id: string): Book | undefined {
+  return books.find((b) => b.id === id)
+}

@@ -2,6 +2,7 @@ import type { ChatSession, Message } from '@/types/chat'
 
 const HOUR = 1000 * 60 * 60
 const MIN = 1000 * 60
+const DAY = HOUR * 24
 
 const sessions: ChatSession[] = [
   {
@@ -12,6 +13,24 @@ const sessions: ChatSession[] = [
     lastMessage: 'How can I apply the 2-minute rule to reading more?',
     messageCount: 6,
     updatedAt: new Date(Date.now() - 15 * MIN).toISOString(),
+  },
+  {
+    id: 'session-4',
+    title: 'Habit stacking',
+    bookId: 'book-1',
+    bookTitle: 'Atomic Habits',
+    lastMessage: 'Give me an example of stacking a new habit onto coffee.',
+    messageCount: 4,
+    updatedAt: new Date(Date.now() - 2 * HOUR).toISOString(),
+  },
+  {
+    id: 'session-5',
+    title: 'Identity-based habits',
+    bookId: 'book-1',
+    bookTitle: 'Atomic Habits',
+    lastMessage: 'How is this different from outcome-based goals?',
+    messageCount: 4,
+    updatedAt: new Date(Date.now() - 2 * DAY).toISOString(),
   },
   {
     id: 'session-2',
@@ -61,6 +80,60 @@ const messagesBySession: Record<string, Message[]> = {
       createdAt: new Date(Date.now() - 15 * MIN).toISOString(),
     },
   ],
+  'session-4': [
+    {
+      id: 'msg-8',
+      sessionId: 'session-4',
+      role: 'user',
+      content: 'What is habit stacking?',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2.3 * HOUR).toISOString(),
+    },
+    {
+      id: 'msg-9',
+      sessionId: 'session-4',
+      role: 'assistant',
+      content:
+        'Habit stacking pairs a new habit with an existing one, using the formula "After [current habit], I will [new habit]." It works because you\'re using an already-automatic behavior as the trigger for the new one, instead of relying on willpower or motivation.',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2.2 * HOUR).toISOString(),
+    },
+    {
+      id: 'msg-10',
+      sessionId: 'session-4',
+      role: 'user',
+      content: 'Give me an example of stacking a new habit onto coffee.',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2 * HOUR).toISOString(),
+    },
+  ],
+  'session-5': [
+    {
+      id: 'msg-11',
+      sessionId: 'session-5',
+      role: 'user',
+      content: 'What does the book mean by identity-based habits?',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2.2 * DAY).toISOString(),
+    },
+    {
+      id: 'msg-12',
+      sessionId: 'session-5',
+      role: 'assistant',
+      content:
+        'Identity-based habits focus on who you wish to become rather than what you want to achieve. Instead of "I want to read more," you aim to become "a reader." Each small action is treated as a vote for that identity, which makes the habit more durable over time than chasing an outcome.',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2.1 * DAY).toISOString(),
+    },
+    {
+      id: 'msg-13',
+      sessionId: 'session-5',
+      role: 'user',
+      content: 'How is this different from outcome-based goals?',
+      status: 'sent',
+      createdAt: new Date(Date.now() - 2 * DAY).toISOString(),
+    },
+  ],
   'session-2': [
     {
       id: 'msg-4',
@@ -101,14 +174,32 @@ const messagesBySession: Record<string, Message[]> = {
   ],
 }
 
-// Will become: axios.get<ChatSession[]>('/chat/sessions').then(res => res.data)
+// Will become: axios.get<ChatSession[]>('/chat/sessions')
 export function getAllSessions(): ChatSession[] {
   return [...sessions].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )
 }
 
+// Will become: axios.get<ChatSession[]>(`/books/${bookId}/sessions`)
+export function getSessionsForBook(bookId: string): ChatSession[] {
+  return sessions
+    .filter((s) => s.bookId === bookId)
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+}
+
+// Used by the Dashboard's "Recent Conversations" widget — spans all books.
+// Will become: axios.get<ChatSession[]>('/chat/sessions/recent')
+export function getRecentSessions(limit = 3): ChatSession[] {
+  return getAllSessions().slice(0, limit)
+}
+
 // Will become: axios.get<Message[]>(`/chat/sessions/${sessionId}/messages`)
 export function getMessagesForSession(sessionId: string): Message[] {
   return messagesBySession[sessionId] ?? []
+}
+
+// Will become: axios.get<{ count: number }>('/chat/sessions/active-count')
+export function getActiveSessionCount(): number {
+  return sessions.length
 }

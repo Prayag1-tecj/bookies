@@ -2,7 +2,7 @@ import { BookOpen, MessageSquare, Sparkles, BookMarked, MessageCircle } from 'lu
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/routes/paths'
 import { getRecentBooks } from '@/services/mockBooks'
-import { getRecentSessions } from '@/services/mockSessions'
+import { getRecentSessions } from '@/services/mockChatSessions'
 import { getUsageStats } from '@/services/mockUsage'
 import StatCard from '@/components/ui/StatCard'
 import SectionContainer from '@/components/ui/SectionContainer'
@@ -74,7 +74,11 @@ function DashboardPage() {
           )}
         </SectionContainer>
 
-        <SectionContainer title="Recent Sessions" actionLabel="View all" actionTo={ROUTES.CHAT}>
+        <SectionContainer
+          title="Recent Conversations"
+          actionLabel="Browse books"
+          actionTo={ROUTES.BOOKS}
+        >
           {recentSessions.length > 0 ? (
             <div className="space-y-2">
               {recentSessions.map((session) => (
@@ -84,10 +88,10 @@ function DashboardPage() {
           ) : (
             <EmptyState
               icon={MessageCircle}
-              title="No chat sessions yet"
-              description="Start a conversation with one of your books to see it here."
-              actionLabel="Start chatting"
-              actionTo={ROUTES.CHAT}
+              title="No conversations yet"
+              description="Open a book and start chatting with your AI mentor to see it here."
+              actionLabel="Browse books"
+              actionTo={ROUTES.BOOKS}
             />
           )}
         </SectionContainer>

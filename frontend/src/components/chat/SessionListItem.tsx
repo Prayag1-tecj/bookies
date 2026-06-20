@@ -26,7 +26,7 @@ function SessionListItem({ session, isActive, onClick }: SessionListItemProps) {
             {formatRelativeTime(session.updatedAt)}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-xs text-gray-500">{session.bookTitle}</p>
+        <p className="mt-0.5 truncate text-xs text-gray-500">{session.lastMessage}</p>
       </div>
     </button>
   )

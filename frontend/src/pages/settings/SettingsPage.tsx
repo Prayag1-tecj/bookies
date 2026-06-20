@@ -4,7 +4,7 @@ import { BookOpen, MessageSquare, Sparkles, MessageCircle, AlertTriangle } from 
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/routes/paths'
 import { getUsageStats } from '@/services/mockUsage'
-import { getActiveSessionCount } from '@/services/mockSessions'
+import { getActiveSessionCount } from '@/services/mockChatSessions'
 import SectionContainer from '@/components/ui/SectionContainer'
 import StatCard from '@/components/ui/StatCard'
 import Button from '@/components/ui/Button'

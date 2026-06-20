@@ -1,7 +1,7 @@
 import { BookOpen, MessageSquare, Trash2, FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Book } from '@/types/book'
-import { buildChatSessionPath } from '@/routes/paths'
+import { buildBookWorkspacePath } from '@/routes/paths'
 import { formatRelativeTime } from '@/utils/formatDate'
 import Badge from '@/components/ui/Badge'
 
@@ -50,7 +50,7 @@ function BookCard({ book, onDeleteClick }: BookCardProps) {
 
       <div className="mt-4 flex items-center gap-2 border-t border-surface-border pt-3">
         <Link
-          to={buildChatSessionPath(book.id)}
+          to={buildBookWorkspacePath(book.id)}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
             book.status === 'ready'
               ? 'bg-brand-600 text-white hover:bg-brand-500'

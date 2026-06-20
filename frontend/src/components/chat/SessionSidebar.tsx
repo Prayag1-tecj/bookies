@@ -1,8 +1,11 @@
-import { Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, ArrowLeft } from 'lucide-react'
 import type { ChatSession } from '@/types/chat'
+import { ROUTES } from '@/routes/paths'
 import SessionListItem from './SessionListItem'
 
 interface SessionSidebarProps {
+  bookTitle: string
   sessions: ChatSession[]
   activeSessionId: string | null
   isOpen: boolean
@@ -12,6 +15,7 @@ interface SessionSidebarProps {
 }
 
 function SessionSidebar({
+  bookTitle,
   sessions,
   activeSessionId,
   isOpen,
@@ -35,6 +39,17 @@ function SessionSidebar({
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        <div className="flex-shrink-0 border-b border-surface-border p-3">
+          <Link
+            to={ROUTES.BOOKS}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors duration-150 hover:text-gray-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Library
+          </Link>
+          <h2 className="mt-2 truncate text-sm font-semibold text-gray-100">{bookTitle}</h2>
+        </div>
+
         <div className="flex-shrink-0 p-3">
           <button
             onClick={onNewChat}
@@ -47,19 +62,25 @@ function SessionSidebar({
 
         <div className="flex-1 space-y-1 overflow-y-auto px-3 pb-3">
           <p className="px-3 pb-1.5 pt-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-            Recent
+            Sessions
           </p>
-          {sessions.map((session) => (
-            <SessionListItem
-              key={session.id}
-              session={session}
-              isActive={session.id === activeSessionId}
-              onClick={() => {
-                onSelectSession(session.id)
-                onClose()
-              }}
-            />
-          ))}
+          {sessions.length > 0 ? (
+            sessions.map((session) => (
+              <SessionListItem
+                key={session.id}
+                session={session}
+                isActive={session.id === activeSessionId}
+                onClick={() => {
+                  onSelectSession(session.id)
+                  onClose()
+                }}
+              />
+            ))
+          ) : (
+            <p className="px-3 py-2 text-xs text-gray-500">
+              No sessions yet. Start a new chat to begin.
+            </p>
+          )}
         </div>
       </aside>
     </>
