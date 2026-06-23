@@ -1,74 +1,64 @@
-import { createContext, useState, type ReactNode } from 'react'
-import type {
-  AuthContextType,
-  AuthState,
-  LoginCredentials,
-  RegisterCredentials,
-  User,
-} from '@/types/auth'
+import { createContext, useState, useEffect, type ReactNode } from 'react'
+import type { AuthContextType, AuthState, LoginCredentials, RegisterCredentials } from '@/types/auth'
+import {
+  loginRequest,
+  registerRequest,
+  logoutRequest,
+  restoreSession,
+} from '@/services/authService'
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-// Temporary mock user — will be replaced by real API response in a later phase
-const MOCK_USER: User = {
-  id: 'user-1',
-  name: 'Demo User',
-  email: 'demo@bookies.app',
-  joinedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 47).toISOString(),
-}
-
-const MOCK_NETWORK_DELAY = 600
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // true on startup while we validate the stored token
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState)
 
-  // Mock login — will become an axios call to /auth/login later.
-  // The signature (params in, Promise<void> out) will not change.
+  // On mount: validate stored token and restore session
+  // isLoading stays true until this resolves — ProtectedRoute
+  // shows a loading screen instead of redirecting prematurely
+  useEffect(() => {
+    restoreSession()
+      .then((user) => {
+        setState({ user, isAuthenticated: user !== null, isLoading: false })
+      })
+      .catch(() => {
+        setState({ user: null, isAuthenticated: false, isLoading: false })
+      })
+  }, [])
+
   const login = async (credentials: LoginCredentials) => {
     setState((prev) => ({ ...prev, isLoading: true }))
-    await new Promise((resolve) => setTimeout(resolve, MOCK_NETWORK_DELAY))
-
-    setState({
-      user: { ...MOCK_USER, email: credentials.email },
-      isAuthenticated: true,
-      isLoading: false,
-    })
+    try {
+      const user = await loginRequest(credentials)
+      setState({ user, isAuthenticated: true, isLoading: false })
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error // re-throw so LoginPage can catch and show error
+    }
   }
 
-  // Mock register — will become an axios call to /auth/register later.
   const register = async (credentials: RegisterCredentials) => {
     setState((prev) => ({ ...prev, isLoading: true }))
-    await new Promise((resolve) => setTimeout(resolve, MOCK_NETWORK_DELAY))
-
-    setState({
-      user: {
-        id: 'user-1',
-        name: credentials.name,
-        email: credentials.email,
-        joinedAt: new Date().toISOString(),
-      },
-      isAuthenticated: true,
-      isLoading: false,
-    })
+    try {
+      const user = await registerRequest(credentials)
+      setState({ user, isAuthenticated: true, isLoading: false })
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error // re-throw so RegisterPage can catch and show error
+    }
   }
 
-  // Mock logout — will also clear stored JWT later.
   const logout = () => {
-    setState(initialState)
+    logoutRequest()
+    setState({ user: null, isAuthenticated: false, isLoading: false })
   }
 
-  const value: AuthContextType = {
-    ...state,
-    login,
-    register,
-    logout,
-  }
+  const value: AuthContextType = { ...state, login, register, logout }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

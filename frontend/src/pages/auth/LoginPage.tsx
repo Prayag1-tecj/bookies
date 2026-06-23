@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, AlertCircle } from 'lucide-react'
+import axios from 'axios'
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/routes/paths'
 import Input from '@/components/ui/Input'
@@ -31,7 +32,6 @@ function LoginPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = 'Enter a valid email address'
     }
-
     if (!password) {
       newErrors.password = 'Password is required'
     } else if (password.length < 6) {
@@ -41,25 +41,30 @@ function LoginPage() {
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) return
 
-    // TEMPORARY mock error path — replaced by real API error handling
-    // once Axios + backend auth is integrated. The `generalError` UI
-    // below will not need to change.
-    if (password === 'wrongpassword') {
-      setGeneralError('Invalid email or password. Please try again.')
-      return
+    try {
+      await login({ email, password })
+      navigate(ROUTES.DASHBOARD)
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+        if (status === 401 || status === 400) {
+          setGeneralError('Invalid email or password. Please try again.')
+        } else if (status === 0 || !err.response) {
+          setGeneralError('Cannot reach the server. Check your connection.')
+        } else {
+          setGeneralError('Something went wrong. Please try again.')
+        }
+      } else {
+        setGeneralError('Something went wrong. Please try again.')
+      }
     }
-
-    await login({ email, password })
-    navigate(ROUTES.DASHBOARD)
   }
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-elevated p-8 shadow-xl shadow-black/20">
       <div className="text-center">
         <h1 className="text-xl font-semibold text-white">Welcome back</h1>
-        <p className="mt-1.5 text-sm text-gray-400">
-          Sign in to continue to your library
-        </p>
+        <p className="mt-1.5 text-sm text-gray-400">Sign in to continue to your library</p>
       </div>
 
       {generalError && (
@@ -81,7 +86,6 @@ function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
         />
-
         <PasswordInput
           id="password"
           label="Password"
@@ -91,7 +95,6 @@ function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
         />
-
         <Button type="submit" fullWidth isLoading={isLoading}>
           {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
@@ -99,10 +102,7 @@ function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-gray-400">
         Don&apos;t have an account?{' '}
-        <Link
-          to={ROUTES.REGISTER}
-          className="font-medium text-brand-400 transition-colors hover:text-brand-300"
-        >
+        <Link to={ROUTES.REGISTER} className="font-medium text-brand-400 transition-colors hover:text-brand-300">
           Sign up
         </Link>
       </p>

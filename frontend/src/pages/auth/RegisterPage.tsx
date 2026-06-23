@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, AlertCircle } from 'lucide-react'
+import axios from 'axios'
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/routes/paths'
 import Input from '@/components/ui/Input'
@@ -30,23 +31,18 @@ function RegisterPage() {
     setGeneralError(null)
 
     const newErrors: FormErrors = {}
-
-    if (!name.trim()) {
-      newErrors.name = 'Name is required'
-    }
-
+    if (!name.trim()) newErrors.name = 'Name is required'
     if (!email.trim()) {
       newErrors.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = 'Enter a valid email address'
     }
-
     if (!password) {
       newErrors.password = 'Password is required'
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+    } else if (password.length < 8) {
+      // Backend enforces min_length=8
+      newErrors.password = 'Password must be at least 8 characters'
     }
-
     if (!confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password'
     } else if (confirmPassword !== password) {
@@ -56,25 +52,37 @@ function RegisterPage() {
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) return
 
-    // TEMPORARY mock error path — replaced by real API error handling
-    // (e.g. "email already registered") once Axios + backend auth is
-    // integrated. The `generalError` UI below will not need to change.
-    if (email.toLowerCase() === 'taken@bookies.app') {
-      setGeneralError('An account with this email already exists.')
-      return
+    try {
+      await register({ name, email, password })
+      navigate(ROUTES.DASHBOARD)
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const data = err.response?.data
+        if (err.response?.status === 400) {
+          // Django returns field-level errors as { username: [...], email: [...] }
+          if (data?.username?.length || data?.email?.length) {
+            setGeneralError('An account with this email already exists.')
+          } else if (data?.password?.length) {
+            setGeneralError(data.password[0])
+          } else {
+            setGeneralError('Registration failed. Please check your details.')
+          }
+        } else if (!err.response) {
+          setGeneralError('Cannot reach the server. Check your connection.')
+        } else {
+          setGeneralError('Something went wrong. Please try again.')
+        }
+      } else {
+        setGeneralError('Something went wrong. Please try again.')
+      }
     }
-
-    await register({ name, email, password })
-    navigate(ROUTES.DASHBOARD)
   }
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-elevated p-8 shadow-xl shadow-black/20">
       <div className="text-center">
         <h1 className="text-xl font-semibold text-white">Create your account</h1>
-        <p className="mt-1.5 text-sm text-gray-400">
-          Start exploring your books with AI
-        </p>
+        <p className="mt-1.5 text-sm text-gray-400">Start exploring your books with AI</p>
       </div>
 
       {generalError && (
@@ -96,7 +104,6 @@ function RegisterPage() {
           onChange={(e) => setName(e.target.value)}
           autoComplete="name"
         />
-
         <Input
           id="email"
           type="email"
@@ -108,7 +115,6 @@ function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
         />
-
         <PasswordInput
           id="password"
           label="Password"
@@ -118,7 +124,6 @@ function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
         />
-
         <PasswordInput
           id="confirmPassword"
           label="Confirm password"
@@ -128,7 +133,6 @@ function RegisterPage() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
         />
-
         <Button type="submit" fullWidth isLoading={isLoading}>
           {isLoading ? 'Creating account...' : 'Create account'}
         </Button>
@@ -136,10 +140,7 @@ function RegisterPage() {
 
       <p className="mt-6 text-center text-sm text-gray-400">
         Already have an account?{' '}
-        <Link
-          to={ROUTES.LOGIN}
-          className="font-medium text-brand-400 transition-colors hover:text-brand-300"
-        >
+        <Link to={ROUTES.LOGIN} className="font-medium text-brand-400 transition-colors hover:text-brand-300">
           Sign in
         </Link>
       </p>
