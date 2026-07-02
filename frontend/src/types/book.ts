@@ -1,13 +1,11 @@
-export type BookStatus = 'ready' | 'processing' | 'failed'
+export type BookStatus = 'ready' | 'processing' | 'failed' | 'uploaded'
 
 export interface Book {
   id: string
   title: string
-  author: string
-  coverColorClass: string
-  pageCount: number
-  uploadedAt: string
-  fileType: 'PDF' | 'EPUB'
+  fileType: 'PDF' | 'EPUB' | 'TXT' | 'DOCX'
+  fileSizeMb: number
   status: BookStatus
-  questionCount: number
+  uploadedAt: string
+  coverColorClass: string
 }

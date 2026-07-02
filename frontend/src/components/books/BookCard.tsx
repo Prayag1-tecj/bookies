@@ -11,11 +11,15 @@ interface BookCardProps {
 }
 
 function BookCard({ book, onDeleteClick }: BookCardProps) {
+  // Backend status is already lowercased by the transform
   const statusConfig = {
     ready: { variant: 'success' as const, label: 'Ready' },
     processing: { variant: 'warning' as const, label: 'Processing' },
     failed: { variant: 'danger' as const, label: 'Failed' },
-  }[book.status]
+    uploaded: { variant: 'neutral' as const, label: 'Uploaded' },
+  }[book.status] ?? { variant: 'neutral' as const, label: book.status }
+
+  const canChat = book.status === 'ready'
 
   return (
     <div className="group flex flex-col rounded-xl border border-surface-border bg-surface-elevated p-4 transition-colors duration-150 hover:border-surface-border/80">
@@ -30,7 +34,6 @@ function BookCard({ book, onDeleteClick }: BookCardProps) {
 
       <div className="mt-3 min-w-0 flex-1">
         <h3 className="truncate text-sm font-semibold text-gray-100">{book.title}</h3>
-        <p className="truncate text-xs text-gray-500">{book.author}</p>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
@@ -38,21 +41,15 @@ function BookCard({ book, onDeleteClick }: BookCardProps) {
           <FileText className="h-3 w-3" />
           {book.fileType}
         </span>
-        <span>{book.pageCount} pages</span>
+        <span>{book.fileSizeMb.toFixed(1)} MB</span>
         <span>{formatRelativeTime(book.uploadedAt)}</span>
-      </div>
-
-      <div className="mt-1.5 text-xs text-gray-500">
-        {book.questionCount > 0
-          ? `${book.questionCount} questions asked`
-          : 'No questions yet'}
       </div>
 
       <div className="mt-4 flex items-center gap-2 border-t border-surface-border pt-3">
         <Link
           to={buildBookWorkspacePath(book.id)}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ${
-            book.status === 'ready'
+            canChat
               ? 'bg-brand-600 text-white hover:bg-brand-500'
               : 'pointer-events-none bg-surface-border text-gray-500'
           }`}

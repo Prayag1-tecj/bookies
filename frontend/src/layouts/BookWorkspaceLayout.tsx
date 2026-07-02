@@ -1,14 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { getBookById } from '@/services/mockBooks'
-import { getSessionsForBook, getMessagesForSession } from '@/services/mockChatSessions'
-import { buildBookWorkspacePath, buildBookWorkspaceSessionPath, ROUTES } from '@/routes/paths'
-import type { Message } from '@/types/chat'
+import { fetchBooks, findBookById } from '@/services/bookService'
+import { fetchSessionsForBook, createSession } from '@/services/sessionService'
+import { fetchMessages, askQuestion } from '@/services/messageService'
+import {
+  buildBookWorkspacePath,
+  buildBookWorkspaceSessionPath,
+  ROUTES,
+} from '@/routes/paths'
+import type { Book } from '@/types/book'
+import type { ChatSession, Message } from '@/types/chat'
 import SessionSidebar from '@/components/chat/SessionSidebar'
 import ConversationHeader from '@/components/chat/ConversationHeader'
 import MessageList from '@/components/chat/MessageList'
 import MessageComposer from '@/components/chat/MessageComposer'
+import Spinner from '@/components/ui/Spinner'
+import ErrorBanner from '@/components/ui/ErrorBanner'
 
 const SUGGESTED_PROMPTS = [
   'Summarize the key ideas',
@@ -17,8 +25,6 @@ const SUGGESTED_PROMPTS = [
   'How can I apply this in my life?',
 ]
 
-const MOCK_REPLY_DELAY_MS = 1200
-
 interface BookWorkspaceLayoutProps {
   bookId: string
   initialSessionId?: string
@@ -26,45 +32,180 @@ interface BookWorkspaceLayoutProps {
 
 function BookWorkspaceLayout({ bookId, initialSessionId }: BookWorkspaceLayoutProps) {
   const navigate = useNavigate()
-  const book = getBookById(bookId)
 
-  const [sessions, setSessions] = useState(() => getSessionsForBook(bookId))
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(
-    initialSessionId ?? sessions[0]?.id ?? null
-  )
-  const [messages, setMessages] = useState<Message[]>(
-    activeSessionId ? getMessagesForSession(activeSessionId) : []
-  )
+  const [book, setBook] = useState<Book | undefined>(undefined)
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [isSessionSidebarOpen, setIsSessionSidebarOpen] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
 
-  // Reset everything when navigating between different book workspaces.
-  useEffect(() => {
-    const bookSessions = getSessionsForBook(bookId)
-    setSessions(bookSessions)
-    const nextActiveId = initialSessionId ?? bookSessions[0]?.id ?? null
-    setActiveSessionId(nextActiveId)
-    setMessages(nextActiveId ? getMessagesForSession(nextActiveId) : [])
-    setIsTyping(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true)
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null)
+  const [messagesError, setMessagesError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
+
+  const loadMessages = useCallback(async (sessionId: string) => {
+    setIsLoadingMessages(true)
+    setMessagesError(null)
+    try {
+      const msgs = await fetchMessages(sessionId)
+      setMessages(msgs)
+    } catch {
+      setMessagesError('Failed to load messages.')
+    } finally {
+      setIsLoadingMessages(false)
+    }
+  }, [])
+
+  const loadWorkspace = useCallback(async () => {
+    setIsLoadingWorkspace(true)
+    setWorkspaceError(null)
+    try {
+      const allBooks = await fetchBooks()
+      const found = findBookById(allBooks, bookId)
+      setBook(found)
+
+      if (!found) {
+        setIsLoadingWorkspace(false)
+        return
+      }
+
+      const bookSessions = await fetchSessionsForBook(bookId, allBooks)
+      setSessions(bookSessions)
+
+      const startId = initialSessionId ?? bookSessions[0]?.id ?? null
+      setActiveSessionId(startId)
+
+      if (startId) {
+        await loadMessages(startId)
+      } else {
+        setMessages([])
+      }
+    } catch {
+      setWorkspaceError('Failed to load the workspace. Please try again.')
+    } finally {
+      setIsLoadingWorkspace(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId])
 
-  // Sync to a session id arriving from the URL (e.g. clicking a Dashboard
-  // "Recent Conversations" link while already inside a workspace).
   useEffect(() => {
-    if (initialSessionId) {
-      setActiveSessionId(initialSessionId)
-      setMessages(getMessagesForSession(initialSessionId))
+    loadWorkspace()
+  }, [loadWorkspace])
+
+  // Sync when URL session param changes while workspace is already mounted
+  useEffect(() => {
+    if (!initialSessionId || initialSessionId === activeSessionId) return
+    setActiveSessionId(initialSessionId)
+    loadMessages(initialSessionId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSessionId])
+
+  const handleSelectSession = async (id: string) => {
+    setActiveSessionId(id)
+    setMessages([])
+    setSendError(null)
+    setIsSessionSidebarOpen(false)
+    navigate(buildBookWorkspaceSessionPath(bookId, id))
+    await loadMessages(id)
+  }
+
+  const handleNewChat = async () => {
+    if (!book) return
+    setIsSessionSidebarOpen(false)
+    try {
+      const newSession = await createSession(bookId, 'New Chat')
+      newSession.bookTitle = book.title
+      setSessions((prev) => [newSession, ...prev])
+      setActiveSessionId(newSession.id)
+      setMessages([])
+      setSendError(null)
+      navigate(buildBookWorkspaceSessionPath(bookId, newSession.id))
+    } catch {
+      setWorkspaceError('Failed to create a new chat session.')
+    }
+  }
+
+  const handleSend = async (text: string) => {
+    if (!activeSessionId) return
+    setSendError(null)
+
+    const tempUserMsg: Message = {
+      id: `temp-user-${Date.now()}`,
+      sessionId: activeSessionId,
+      role: 'user',
+      content: text,
+      status: 'sent',
+      createdAt: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, tempUserMsg])
+    setIsTyping(true)
+
+    try {
+      const answer = await askQuestion(activeSessionId, text)
+
+      // Backend auto-renames "New Chat" sessions to the first question
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId && s.title === 'New Chat'
+            ? { ...s, title: text.slice(0, 100) }
+            : s
+        )
+      )
+
+      const assistantMsg: Message = {
+        id: `temp-ai-${Date.now()}`,
+        sessionId: activeSessionId,
+        role: 'assistant',
+        content: answer,
+        status: 'sent',
+        createdAt: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, assistantMsg])
+    } catch (err: unknown) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id))
+      const axiosErr = err as {
+        response?: { status: number }
+      }
+      if (axiosErr?.response?.status === 403) {
+        setSendError('Daily question limit reached. Resets at midnight.')
+      } else if (!axiosErr?.response) {
+        setSendError('Cannot reach the server. Check your connection.')
+      } else {
+        setSendError('Failed to get a response. Please try again.')
+      }
+    } finally {
       setIsTyping(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSessionId])
+  }
+
+  // ── Render states ───────────────────────────────────────────────────────────
+
+  if (isLoadingWorkspace) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-xl border border-surface-border bg-surface-elevated">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (workspaceError) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 rounded-xl border border-surface-border bg-surface-elevated p-6">
+        <ErrorBanner message={workspaceError} onRetry={loadWorkspace} />
+      </div>
+    )
+  }
 
   if (!book) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-xl border border-surface-border bg-surface-elevated p-6 text-center">
         <p className="text-sm font-medium text-gray-200">Book not found</p>
-        <p className="mt-1 text-xs text-gray-500">This book may have been removed.</p>
+        <p className="mt-1 text-xs text-gray-500">
+          This book may have been removed.
+        </p>
         <Link
           to={ROUTES.BOOKS}
           className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-500"
@@ -77,59 +218,6 @@ function BookWorkspaceLayout({ bookId, initialSessionId }: BookWorkspaceLayoutPr
   }
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)
-
-  const handleSelectSession = (id: string) => {
-    setActiveSessionId(id)
-    setMessages(getMessagesForSession(id))
-    setIsTyping(false)
-    navigate(buildBookWorkspaceSessionPath(bookId, id))
-  }
-
-  const handleNewChat = () => {
-    // TEMPORARY — UI-only "new chat" for this phase. Real implementation
-    // (later phase) calls POST /books/:bookId/sessions, prepends the
-    // returned session to the list, and navigates to it the same way.
-    setActiveSessionId(null)
-    setMessages([])
-    setIsTyping(false)
-    setIsSessionSidebarOpen(false)
-    navigate(buildBookWorkspacePath(bookId))
-  }
-
-  const handleSend = (text: string) => {
-    if (!activeSessionId) return
-
-    const userMessage: Message = {
-      id: `msg-${Date.now()}`,
-      sessionId: activeSessionId,
-      role: 'user',
-      content: text,
-      status: 'sent',
-      createdAt: new Date().toISOString(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setIsTyping(true)
-
-    // TEMPORARY mock reply — will be replaced by a real
-    // POST /chat/sessions/:id/messages call. isTyping mirrors the
-    // "waiting for the response to start" state a real request has, and
-    // the eventual response can transition through a 'streaming' status
-    // on this same message shape as tokens arrive — no UI changes needed.
-    setTimeout(() => {
-      const mockReply: Message = {
-        id: `msg-${Date.now() + 1}`,
-        sessionId: activeSessionId,
-        role: 'assistant',
-        content:
-          'This is a placeholder response — real AI answers will appear here once the backend is connected.',
-        status: 'sent',
-        createdAt: new Date().toISOString(),
-      }
-      setMessages((prev) => [...prev, mockReply])
-      setIsTyping(false)
-    }, MOCK_REPLY_DELAY_MS)
-  }
 
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
@@ -149,14 +237,39 @@ function BookWorkspaceLayout({ bookId, initialSessionId }: BookWorkspaceLayoutPr
           bookTitle={book.title}
           onMenuClick={() => setIsSessionSidebarOpen(true)}
         />
-        <MessageList
-          messages={messages}
-          isTyping={isTyping}
-          bookTitle={book.title}
-          suggestions={SUGGESTED_PROMPTS}
-          onSuggestionClick={handleSend}
+
+        {isLoadingMessages ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          <>
+            {(messagesError || sendError) && (
+              <div className="px-4 pt-4">
+                <ErrorBanner
+                  message={(messagesError ?? sendError)!}
+                  onRetry={
+                    messagesError
+                      ? () => activeSessionId && loadMessages(activeSessionId)
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+            <MessageList
+              messages={messages}
+              isTyping={isTyping}
+              bookTitle={book.title}
+              suggestions={SUGGESTED_PROMPTS}
+              onSuggestionClick={handleSend}
+            />
+          </>
+        )}
+
+        <MessageComposer
+          onSend={handleSend}
+          disabled={!activeSessionId || isTyping || isLoadingMessages}
         />
-        <MessageComposer onSend={handleSend} disabled={!activeSessionId || isTyping} />
       </div>
     </div>
   )

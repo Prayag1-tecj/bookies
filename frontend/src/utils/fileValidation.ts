@@ -5,7 +5,9 @@ export const ACCEPTED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'text/plain',
 ]
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
+
+// Backend enforces 5MB — frontend validates to match exactly
+export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
 export interface FileValidationResult {
   isValid: boolean
@@ -25,7 +27,7 @@ export function validateFile(file: File): FileValidationResult {
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return {
       isValid: false,
-      error: `File exceeds the 10MB size limit`,
+      error: 'File exceeds the 5MB size limit',
     }
   }
 

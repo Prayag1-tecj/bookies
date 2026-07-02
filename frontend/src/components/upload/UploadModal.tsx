@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { validateFile } from '@/utils/fileValidation'
-import { simulateUpload } from '@/services/mockUpload'
+import { uploadBook } from '@/services/bookService'
+import type { Book } from '@/types/book'
 import DropZone from './DropZone'
 import UploadFileItem, { type StagedFile } from './UploadFileItem'
 import Button from '@/components/ui/Button'
@@ -9,9 +10,10 @@ import Button from '@/components/ui/Button'
 interface UploadModalProps {
   isOpen: boolean
   onClose: () => void
+  onUploadSuccess: (book: Book) => void
 }
 
-function UploadModal({ isOpen, onClose }: UploadModalProps) {
+function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalProps) {
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([])
 
   if (!isOpen) return null
@@ -21,24 +23,35 @@ function UploadModal({ isOpen, onClose }: UploadModalProps) {
       prev.map((f) => (f.id === staged.id ? { ...f, status: 'uploading', progress: 0 } : f))
     )
 
-    simulateUpload(staged.file, (percent) => {
+    // Simulate progress while request is in flight
+    let simProgress = 0
+    const interval = setInterval(() => {
+      simProgress = Math.min(simProgress + 12, 85)
       setStagedFiles((prev) =>
-        prev.map((f) => (f.id === staged.id ? { ...f, progress: percent } : f))
+        prev.map((f) => (f.id === staged.id ? { ...f, progress: simProgress } : f))
       )
-    })
-      .then(() => {
+    }, 300)
+
+    uploadBook(staged.file)
+      .then((newBook) => {
+        clearInterval(interval)
         setStagedFiles((prev) =>
-          prev.map((f) => (f.id === staged.id ? { ...f, status: 'success' } : f))
+          prev.map((f) => (f.id === staged.id ? { ...f, status: 'success', progress: 100 } : f))
         )
-        // TODO: once backend exists, refetch/append to the books list here
-        // so BooksPage's grid reflects the new book without a manual reload.
+        onUploadSuccess(newBook)
       })
-      .catch((err: Error) => {
+      .catch((err) => {
+        clearInterval(interval)
+        let errorMessage = 'Upload failed. Please try again.'
+        if (err?.response?.status === 400) {
+          const data = err.response.data
+          errorMessage = data?.error ?? errorMessage
+        } else if (!err?.response) {
+          errorMessage = 'Cannot reach the server. Check your connection.'
+        }
         setStagedFiles((prev) =>
           prev.map((f) =>
-            f.id === staged.id
-              ? { ...f, status: 'error', errorMessage: err.message }
-              : f
+            f.id === staged.id ? { ...f, status: 'error', errorMessage } : f
           )
         )
       })
@@ -55,9 +68,7 @@ function UploadModal({ isOpen, onClose }: UploadModalProps) {
         errorMessage: validation.isValid ? undefined : validation.error,
       }
     })
-
     setStagedFiles((prev) => [...prev, ...newStaged])
-
     newStaged.filter((f) => f.status === 'pending').forEach(startUpload)
   }
 
