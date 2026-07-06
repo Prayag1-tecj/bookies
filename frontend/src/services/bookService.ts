@@ -59,12 +59,20 @@ export async function fetchBooks(): Promise<Book[]> {
   return data.map(transformBook)
 }
 
-export async function uploadBook(file: File): Promise<Book> {
+export async function uploadBook(
+  file: File,
+  onUploadProgress?: (progress: number) => void
+): Promise<Book> {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('title', file.name.replace(/\.[^/.]+$/, ''))
   const { data } = await api.post<BookUploadResponse>('/api/books/upload/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 0,
+    onUploadProgress: (event) => {
+      if (!event.total) return
+      onUploadProgress?.(Math.round((event.loaded * 100) / event.total))
+    },
   })
   return transformBook(data)
 }

@@ -26,3 +26,8 @@ Thumbs.db
 
 #sqlite
 backend/db.sqlite3
+
+#Uploaded Media
+backend/media/
+#Codex
+CODEX.md
