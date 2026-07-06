@@ -22,6 +22,8 @@ function transformSession(raw: SessionListItem, books: Book[]): ChatSession {
     bookId: String(raw.book_id),
     bookTitle: book?.title ?? '',
     title: raw.title,
+    lastMessage: '',
+    messageCount: 0,
     updatedAt: raw.created_at,
   }
 }
@@ -52,6 +54,8 @@ export async function createSession(
     bookId: String(data.book_id),
     bookTitle: '',
     title: data.title,
+    lastMessage: '',
+    messageCount: 0,
     updatedAt: new Date().toISOString(),
   }
 }

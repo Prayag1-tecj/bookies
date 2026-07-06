@@ -5,7 +5,6 @@ import { fetchBooks, findBookById } from '@/services/bookService'
 import { fetchSessionsForBook, createSession } from '@/services/sessionService'
 import { fetchMessages, askQuestion } from '@/services/messageService'
 import {
-  buildBookWorkspacePath,
   buildBookWorkspaceSessionPath,
   ROUTES,
 } from '@/routes/paths'
