@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import (
     IsAuthenticated
 )
@@ -15,6 +16,26 @@ from .models import (
     ChatSession,
     ChatMessage
 )
+
+
+def parse_required_int(value, field_name):
+    if value in (None, ""):
+        return None, Response(
+            {
+                "error": f"{field_name} is required"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        return int(value), None
+    except (TypeError, ValueError):
+        return None, Response(
+            {
+                "error": f"{field_name} must be a valid integer"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 class AskQuestionView(APIView):
 
@@ -37,13 +58,66 @@ class AskQuestionView(APIView):
                     status=403
                 )
 
-        session_id = request.data.get("session_id")
+        session_id, error_response = parse_required_int(
+            request.data.get("session_id"),
+            "session_id"
+        )
+
+        if error_response:
+            return error_response
+
         question = request.data.get("question")
 
-        session = ChatSession.objects.get(
-            id=session_id,
-            user=request.user
+        if not isinstance(question, str) or not question.strip():
+            return Response(
+                {
+                    "error": "question is required"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        question = question.strip()
+
+        session = (
+            ChatSession.objects
+            .select_related("book")
+            .filter(
+                id=session_id,
+                user=request.user
+            )
+            .first()
         )
+
+        if not session:
+            return Response(
+                {
+                    "error": "Chat session not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            chunks = retrieve_relevant_chunks(
+                question,
+                session.book.id
+            )
+
+            context = "\n\n".join(
+                chunk.content
+                for chunk in chunks
+            )
+
+            answer = generate_answer(
+                question,
+                context
+            )
+        except Exception:
+            return Response(
+                {
+                    "error": "Failed to generate an answer. Please try again."
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
 
         if session.title == "New Chat":
 
@@ -55,21 +129,6 @@ class AskQuestionView(APIView):
             session=session,
             role="USER",
             content=question
-        )
-
-        chunks = retrieve_relevant_chunks(
-            question,
-            session.book.id
-        )
-
-        context = "\n\n".join(
-            chunk.content
-            for chunk in chunks
-        )
-
-        answer = generate_answer(
-            question,
-            context
         )
 
         ChatMessage.objects.create(
@@ -99,10 +158,22 @@ class ChatHistoryView(APIView):
         session_id
     ):
 
-        session = ChatSession.objects.get(
-            id=session_id,
-            user=request.user
+        session = (
+            ChatSession.objects
+            .filter(
+                id=session_id,
+                user=request.user
+            )
+            .first()
         )
+
+        if not session:
+            return Response(
+                {
+                    "error": "Chat session not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         messages = (
             session.messages.all()
@@ -127,15 +198,40 @@ class CreateChatSessionView(APIView):
 
     def post(self, request):
 
-        book_id = request.data.get("book_id")
-        title = request.data.get(
-    "title",
-    "New Chat"
-)
-
-        book = Book.objects.get(
-            id=book_id
+        book_id, error_response = parse_required_int(
+            request.data.get("book_id"),
+            "book_id"
         )
+
+        if error_response:
+            return error_response
+
+        title = request.data.get(
+            "title",
+            "New Chat"
+        )
+
+        if not isinstance(title, str) or not title.strip():
+            title = "New Chat"
+        else:
+            title = title.strip()[:255]
+
+        book = (
+            Book.objects
+            .filter(
+                id=book_id,
+                uploaded_by=request.user
+            )
+            .first()
+        )
+
+        if not book:
+            return Response(
+                {
+                    "error": "Book not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         session = ChatSession.objects.create(
             user=request.user,
@@ -187,10 +283,22 @@ class DeleteSessionView(APIView):
         session_id
     ):
 
-        session = ChatSession.objects.get(
-            id=session_id,
-            user=request.user
+        session = (
+            ChatSession.objects
+            .filter(
+                id=session_id,
+                user=request.user
+            )
+            .first()
         )
+
+        if not session:
+            return Response(
+                {
+                    "error": "Chat session not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         session.delete()
 

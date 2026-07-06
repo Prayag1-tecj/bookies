@@ -57,6 +57,7 @@ def process_book(book):
 
         book.status = "READY"
         book.save()
+        return True
 
     except Exception:
 
@@ -65,3 +66,4 @@ def process_book(book):
 
         book.status = "FAILED"
         book.save()
+        return False

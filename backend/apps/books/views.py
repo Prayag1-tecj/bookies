@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
+from pathlib import Path
+
 from .models import Book
 from .serializers import BookUploadSerializer
 from django.shortcuts import get_object_or_404
@@ -34,24 +36,6 @@ class BookUploadView(APIView):
             )
 
         uploaded_file = request.FILES.get("file")
-        MAX_SIZE_MB = 5
-
-        file_size_mb = (
-            uploaded_file.size /
-            (1024 * 1024)
-        )
-
-        if file_size_mb > MAX_SIZE_MB:
-
-            return Response(
-                {
-                    "error":
-                    "File exceeds 5 MB limit"
-                },
-                status=400
-            )
-
-        
 
         if not uploaded_file:
             return Response(
@@ -90,15 +74,30 @@ class BookUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        title = request.data.get("title") or Path(uploaded_file.name).stem
+
         book = Book.objects.create(
-            title=request.data.get("title"),
+            title=str(title).strip() or Path(uploaded_file.name).stem,
             uploaded_by=request.user,
             file=uploaded_file,
             file_type=extension,
             file_size_mb=round(file_size_mb, 2),
         )
 
-        process_book(book)
+        processing_succeeded = process_book(book)
+
+        if not processing_succeeded:
+            if book.file:
+                book.file.delete(save=False)
+
+            book.delete()
+
+            return Response(
+                {
+                    "error": "We could not process this book. Please try another file."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         profile.books_uploaded += 1
         profile.storage_used_mb += file_size_mb
