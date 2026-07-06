@@ -1,4 +1,5 @@
 from apps.books.models import Chunk
+from .embedding_processor import create_embedding
 
 from .chunker import (
     split_into_chunks
@@ -15,11 +16,11 @@ def create_chunks(document):
         chunks
     ):
 
-        Chunk.objects.create(
+        chunk = Chunk.objects.create(
             document=document,
             chunk_index=index,
             content=chunk_text,
-            word_count=len(
-                chunk_text.split()
-            )
+            word_count=len(chunk_text.split())
         )
+
+        create_embedding(chunk)
