@@ -1,0 +1,16 @@
+{
+  "run_date": "YYYY-MM-DD",
+  "git_commit": "",
+  "dataset_version": "v1",
+  "dataset_sha256": "",
+  "machine": "",
+  "operating_system": "Windows",
+  "python_version": "",
+  "database": "local or hosted; do not include credentials",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chunk_size_words": 500,
+  "chunk_overlap_words": 0,
+  "top_k": 5,
+  "generation_enabled": false,
+  "notes": "Record any environment changes that could affect timing."
+}

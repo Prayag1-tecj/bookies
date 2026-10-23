@@ -1,6 +1,7 @@
 # Python
 backend/venv/
 __pycache__/
+*.py[cod]
 *.pyc
 
 # Environment
@@ -31,3 +32,8 @@ backend/db.sqlite3
 backend/media/
 #Codex
 CODEX.md
+
+# Private RAG evaluation data and generated results
+evaluation/questions.json
+evaluation/smoke_questions.json
+evaluation/smoke-results.json

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "q001",
+    "book_title": "EXACT TITLE FROM YOUR BOOKSHELF",
+    "question": "A question whose answer is clearly stated in the selected book.",
+    "relevant_passages": [
+      "Paste a short, distinctive verbatim sentence or passage from the book that should be retrieved."
+    ],
+    "gold_answer": "Write a short reference answer for later manual answer-quality evaluation."
+  }
+]
